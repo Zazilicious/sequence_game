@@ -13,6 +13,7 @@ FPS = 60
 pygame.init()
 screen = pygame.display.set_mode(SCREEN_SIZE)
 clock = pygame.time.Clock()
+
 # images load
 class Block(pygame.sprite.Sprite):
     def __init__(self, img, pos, correct_index):
@@ -25,6 +26,7 @@ class Block(pygame.sprite.Sprite):
     def update(self, mouse_pos):
         if self.dragging:
             self.rect.center = mouse_pos
+
 # tiles load
 def load_tiles(path):
     images = []
@@ -36,7 +38,8 @@ def load_tiles(path):
         img = pygame.image.load(os.path.join(path, f)).convert_alpha()
         images.append(pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE)))
     return images
-# grid
+
+# grid generation
 def make_grid(images):
     blocks = pygame.sprite.Group()
     coords = [(x * TILE_SIZE + 200, y * TILE_SIZE + 100)
@@ -50,7 +53,8 @@ def make_grid(images):
         block = Block(images[idx], pos, idx)
         blocks.add(block)
     return blocks
-# check if right
+
+# check if row ordering is correct
 def is_correct(blocks):
     rows = {}
     for block in blocks:
@@ -66,12 +70,20 @@ def is_correct(blocks):
             return False
     return True
 
-# button
+# button rendering
 def draw_button(surface, rect, text, font, color=(180, 180, 180)):
     pygame.draw.rect(surface, color, rect)
     label = font.render(text, True, (0, 0, 0))
     surface.blit(label, (rect.x + (rect.width - label.get_width()) // 2, rect.y + (rect.height - label.get_height()) // 2))
-# game
+
+# draw grid lines
+def draw_grid(surface):
+    for x in range(GRID_COLS + 1):
+        pygame.draw.line(surface, (200, 200, 200), (200 + x * TILE_SIZE, 100), (200 + x * TILE_SIZE, 100 + GRID_ROWS * TILE_SIZE), 2)
+    for y in range(GRID_ROWS + 1):
+        pygame.draw.line(surface, (200, 200, 200), (200, 100 + y * TILE_SIZE), (200 + GRID_COLS * TILE_SIZE, 100 + y * TILE_SIZE), 2)
+
+# game loop
 def main():
     try:
         images = load_tiles('images')
@@ -85,11 +97,13 @@ def main():
     solved_time = None
     check_result = None
     result_time = 0
+    show_grid = False 
 
     font = pygame.font.SysFont(None, 36)
     result_font = pygame.font.SysFont(None, 48)
 
-    check_button = pygame.Rect(SCREEN_SIZE[0] // 2 - 60, SCREEN_SIZE[1] - 60, 120, 40)
+    check_button = pygame.Rect(SCREEN_SIZE[0] // 2 - 140, SCREEN_SIZE[1] - 60, 120, 40)
+    grid_button = pygame.Rect(SCREEN_SIZE[0] // 2 + 20, SCREEN_SIZE[1] - 60, 120, 40)
 
     running = True
     while running:
@@ -103,6 +117,8 @@ def main():
                 if check_button.collidepoint(e.pos):
                     check_result = "Correct!" if is_correct(blocks) else "Incorrect"
                     result_time = pygame.time.get_ticks()
+                elif grid_button.collidepoint(e.pos):
+                    show_grid = not show_grid
                 else:
                     for block in reversed(blocks.sprites()):
                         if block.rect.collidepoint(e.pos):
@@ -130,7 +146,11 @@ def main():
         screen.fill((50, 50, 50))
         blocks.draw(screen)
 
+        if show_grid:
+            draw_grid(screen)
+
         draw_button(screen, check_button, "Check", font)
+        draw_button(screen, grid_button, "Grid", font)
 
         if check_result and pygame.time.get_ticks() - result_time < 2000:
             color = (0, 200, 0) if check_result == "Correct!" else (200, 0, 0)
