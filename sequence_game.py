@@ -14,12 +14,11 @@ pygame.init()
 screen = pygame.display.set_mode(SCREEN_SIZE)
 clock = pygame.time.Clock()
 
-# --- Calculate grid offset for centering ---
+
 GRID_WIDTH = GRID_COLS * TILE_SIZE
 GRID_HEIGHT = GRID_ROWS * TILE_SIZE
 OFFSET_X = (SCREEN_SIZE[0] - GRID_WIDTH) // 2
 OFFSET_Y = (SCREEN_SIZE[1] - GRID_HEIGHT) // 2
-# ----------------------------------------
 
 # images load
 class Block(pygame.sprite.Sprite):
@@ -49,11 +48,10 @@ def load_tiles(path):
 # grid generation
 def make_grid(images):
     blocks = pygame.sprite.Group()
-    # --- Use calculated OFFSET_X and OFFSET_Y for tile placement ---
+
     coords = [(x * TILE_SIZE + OFFSET_X, y * TILE_SIZE + OFFSET_Y)
               for y in range(GRID_ROWS)
               for x in range(GRID_COLS)]
-    # -----------------------------------------------------------
 
     indices = list(range(len(images)))
     random.shuffle(indices)
