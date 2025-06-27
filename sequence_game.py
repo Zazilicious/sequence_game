@@ -14,6 +14,13 @@ pygame.init()
 screen = pygame.display.set_mode(SCREEN_SIZE)
 clock = pygame.time.Clock()
 
+# --- Calculate grid offset for centering ---
+GRID_WIDTH = GRID_COLS * TILE_SIZE
+GRID_HEIGHT = GRID_ROWS * TILE_SIZE
+OFFSET_X = (SCREEN_SIZE[0] - GRID_WIDTH) // 2
+OFFSET_Y = (SCREEN_SIZE[1] - GRID_HEIGHT) // 2
+# ----------------------------------------
+
 # images load
 class Block(pygame.sprite.Sprite):
     def __init__(self, img, pos, correct_index):
@@ -42,9 +49,11 @@ def load_tiles(path):
 # grid generation
 def make_grid(images):
     blocks = pygame.sprite.Group()
-    coords = [(x * TILE_SIZE + 200, y * TILE_SIZE + 100)
+    # --- Use calculated OFFSET_X and OFFSET_Y for tile placement ---
+    coords = [(x * TILE_SIZE + OFFSET_X, y * TILE_SIZE + OFFSET_Y)
               for y in range(GRID_ROWS)
               for x in range(GRID_COLS)]
+    # -----------------------------------------------------------
 
     indices = list(range(len(images)))
     random.shuffle(indices)
@@ -58,7 +67,8 @@ def make_grid(images):
 def is_correct(blocks):
     rows = {}
     for block in blocks:
-        y = (block.rect.y - 100) // TILE_SIZE
+        # --- Adjust calculation to use OFFSET_Y ---
+        y = (block.rect.y - OFFSET_Y) // TILE_SIZE
         if y not in rows:
             rows[y] = []
         rows[y].append(block)
@@ -78,10 +88,12 @@ def draw_button(surface, rect, text, font, color=(180, 180, 180)):
 
 # draw grid lines
 def draw_grid(surface):
+    # --- Use calculated OFFSET_X and OFFSET_Y for grid lines ---
     for x in range(GRID_COLS + 1):
-        pygame.draw.line(surface, (200, 200, 200), (200 + x * TILE_SIZE, 100), (200 + x * TILE_SIZE, 100 + GRID_ROWS * TILE_SIZE), 2)
+        pygame.draw.line(surface, (200, 200, 200), (OFFSET_X + x * TILE_SIZE, OFFSET_Y), (OFFSET_X + x * TILE_SIZE, OFFSET_Y + GRID_ROWS * TILE_SIZE), 2)
     for y in range(GRID_ROWS + 1):
-        pygame.draw.line(surface, (200, 200, 200), (200, 100 + y * TILE_SIZE), (200 + GRID_COLS * TILE_SIZE, 100 + y * TILE_SIZE), 2)
+        pygame.draw.line(surface, (200, 200, 200), (OFFSET_X, OFFSET_Y + y * TILE_SIZE), (OFFSET_X + GRID_COLS * TILE_SIZE, OFFSET_Y + y * TILE_SIZE), 2)
+    # -----------------------------------------------------------
 
 # game loop
 def main():
@@ -128,9 +140,10 @@ def main():
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
                 if selected:
                     selected.dragging = False
+                    # --- Adjust snapping calculation to use OFFSET_X and OFFSET_Y ---
                     selected.rect.topleft = (
-                        round((selected.rect.x - 200) / TILE_SIZE) * TILE_SIZE + 200,
-                        round((selected.rect.y - 100) / TILE_SIZE) * TILE_SIZE + 100
+                        round((selected.rect.x - OFFSET_X) / TILE_SIZE) * TILE_SIZE + OFFSET_X,
+                        round((selected.rect.y - OFFSET_Y) / TILE_SIZE) * TILE_SIZE + OFFSET_Y
                     )
                     selected = None
                     if is_correct(blocks):
